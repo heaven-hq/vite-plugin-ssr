@@ -41,6 +41,10 @@
       "node": "./dist/cjs/node/index.js",
       "import": "./dist/esm/node/index.js"
     },
+    "./importNodeStreamModule": {
+      "node": "./dist/cjs/node/html/stream/importNodeStreamModule.js",
+      "import": "./dist/esm/node/html/stream/importNodeStreamModule.js"
+    },
     "./types": {
       "node": "./dist/cjs/types.js",
       "import": "./dist/esm/types.js"
@@ -65,9 +69,5 @@
   "description": "Like Next.js / Nuxt but as do-one-thing-do-it-well Vite plugin",
   "repository": "https://github.com/brillout/vite-plugin-ssr",
   "license": "MIT",
-  "keywords": [
-    "vite",
-    "vite-plugin",
-    "ssr"
-  ]
+  "keywords": ["vite", "vite-plugin", "ssr"]
 }

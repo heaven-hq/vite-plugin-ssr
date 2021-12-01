@@ -1,5 +1,6 @@
 import express from 'express'
 import { createPageRenderer } from 'vite-plugin-ssr'
+import 'vite-plugin-ssr/importNodeStreamModule'
 import * as vite from 'vite'
 
 const isProduction = process.env.NODE_ENV === 'production'

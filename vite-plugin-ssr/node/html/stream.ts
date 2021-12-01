@@ -1,6 +1,7 @@
-import { Readable, Writable } from 'stream'
+import type { Readable as StreamReadableNode, Writable as StreamWritableNode } from 'stream'
 import { assert, assertUsage, checkType, isObject } from '../../shared/utils'
 import { HtmlRender } from './renderHtml'
+import { streamNodeModuleGet } from './stream/streamNodeModule'
 
 export { getStreamReadableNode }
 export { getStreamReadableWeb }
@@ -25,8 +26,6 @@ export { pipeNodeStream }
 
 type StreamReadableWeb = ReadableStream
 type StreamWritableWeb = WritableStream
-type StreamReadableNode = Readable
-type StreamWritableNode = Writable
 type StreamPipeWeb = (writable: StreamWritableWeb) => void
 type StreamPipeNode = (writable: StreamWritableNode) => void
 type Stream = StreamReadableWeb | StreamReadableNode | StreamPipeWebWrapped | StreamPipeNodeWrapped
@@ -37,10 +36,11 @@ function isStreamReadableWeb(thing: unknown): thing is StreamReadableWeb {
   return typeof ReadableStream !== 'undefined' && thing instanceof ReadableStream
 }
 function isStreamReadableNode(thing: unknown): thing is StreamReadableNode {
+  const { Readable } = streamNodeModuleGet()
   return thing instanceof Readable
 }
 
-async function streamReadableNodeToString(readableNode: Readable): Promise<string> {
+async function streamReadableNodeToString(readableNode: StreamReadableNode): Promise<string> {
   // Copied from: https://stackoverflow.com/questions/10623798/how-do-i-read-the-contents-of-a-node-js-stream-into-a-string-variable/49428486#49428486
   const chunks: Buffer[] = []
   return new Promise((resolve, reject) => {
@@ -63,6 +63,7 @@ async function streamReadableWebToString(readableWeb: ReadableStream): Promise<s
   return str
 }
 function stringToStreamReadableNode(str: string): StreamReadableNode {
+  const { Readable } = streamNodeModuleGet()
   return Readable.from(str)
 }
 function stringToStreamReadableWeb(str: string): StreamReadableWeb {
@@ -94,6 +95,7 @@ function streamPipeNodeToString(streamPipeNode: StreamPipeNode): Promise<string>
   let str: string = ''
   let resolve: (s: string) => void
   const promise = new Promise<string>((r) => (resolve = r))
+  const { Writable } = streamNodeModuleGet()
   const writable = new Writable({
     write(chunk, _encoding, callback) {
       const s = chunk.toString()
@@ -294,6 +296,7 @@ async function manipulateStream<StreamType extends Stream>(
       writableOriginal = writable_
       writableOriginalReady = true
     })
+    const { Writable } = streamNodeModuleGet()
     const writableProxy = new Writable({
       async write(chunk, _encoding, callback) {
         await onData(chunk)
@@ -401,6 +404,7 @@ async function manipulateStream<StreamType extends Stream>(
 
   if (isStreamReadableNode(streamOriginal)) {
     const readableNodeOriginal: StreamReadableNode = streamOriginal
+    const { Readable } = streamNodeModuleGet()
     // Vue doesn't always set the `read()` handler: https://github.com/brillout/vite-plugin-ssr/issues/138#issuecomment-934743375
     if (readableNodeOriginal._read === Readable.prototype._read) {
       readableNodeOriginal._read = function () {}
